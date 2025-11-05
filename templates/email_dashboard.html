@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Email Dashboard - HR Assistant{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Email Management Dashboard</h1>
+        <p class="lead text-muted">Manage HR email communications with AI-powered automation.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Statistics Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="card shadow stat-card">
+            <div class="card-body">
+                <h3 id="totalEmails" class="text-primary">-</h3>
+                <p>Total Emails</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card shadow stat-card">
+            <div class="card-body">
+                <h3 id="sentEmails" class="text-success">-</h3>
+                <p>Sent Emails</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card shadow stat-card">
+            <div class="card-body">
+                <h3 id="receivedEmails" class="text-info">-</h3>
+                <p>Received Emails</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card shadow stat-card">
+            <div class="card-body">
+                <h3 id="totalThreads" class="text-warning">-</h3>
+                <p>Email Threads</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- Quick Actions -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('email.compose') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-pencil-square"></i> Compose New Email
+                    </a>
+                    <a href="{{ url_for('email.inbox') }}" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-inbox"></i> View Inbox
+                    </a>
+                    <a href="{{ url_for('email.sent') }}" class="btn btn-outline-success btn-lg">
+                        <i class="bi bi-send"></i> Sent Emails
+                    </a>
+                    <a href="{{ url_for('hr.dashboard') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Back to HR Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Email Types -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Top Email Types</h5>
+            </div>
+            <div class="card-body">
+                <div id="emailTypesContainer">
+                    <p class="text-muted">Loading email types...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Available Email Templates</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted mb-3">The Email Agent supports the following HR email templates:</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><span class="badge bg-primary me-2">1</span> Offer Letter</li>
+                            <li><span class="badge bg-primary me-2">2</span> Appointment Letter</li>
+                            <li><span class="badge bg-primary me-2">3</span> Joining Reminder</li>
+                            <li><span class="badge bg-primary me-2">4</span> Onboarding Schedule</li>
+                            <li><span class="badge bg-primary me-2">5</span> Probation Completion</li>
+                            <li><span class="badge bg-primary me-2">6</span> Promotion</li>
+                            <li><span class="badge bg-primary me-2">7</span> Salary Increment</li>
+                            <li><span class="badge bg-primary me-2">8</span> Leave Approval</li>
+                            <li><span class="badge bg-primary me-2">9</span> Leave Rejection</li>
+                            <li><span class="badge bg-primary me-2">10</span> Attendance Warning</li>
+                            <li><span class="badge bg-primary me-2">11</span> Performance Warning</li>
+                            <li><span class="badge bg-primary me-2">12</span> Appreciation</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <ul class="list-unstyled">
+                            <li><span class="badge bg-success me-2">13</span> Project Assignment</li>
+                            <li><span class="badge bg-success me-2">14</span> Training Invitation</li>
+                            <li><span class="badge bg-success me-2">15</span> Meeting Invite</li>
+                            <li><span class="badge bg-success me-2">16</span> Task Reminder</li>
+                            <li><span class="badge bg-success me-2">17</span> Birthday Greeting</li>
+                            <li><span class="badge bg-success me-2">18</span> Work Anniversary</li>
+                            <li><span class="badge bg-success me-2">19</span> Farewell</li>
+                            <li><span class="badge bg-success me-2">20</span> Resignation Acceptance</li>
+                            <li><span class="badge bg-success me-2">21</span> Termination</li>
+                            <li><span class="badge bg-success me-2">22</span> Holiday Announcement</li>
+                            <li><span class="badge bg-success me-2">23</span> Policy Update</li>
+                            <li><span class="badge bg-success me-2">24</span> General Announcement</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Load statistics on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStats();
+    });
+
+    async function loadStats() {
+        try {
+            const response = await fetch('/email/stats');
+            const data = await response.json();
+
+            if (response.ok) {
+                document.getElementById('totalEmails').textContent = data.total_emails || 0;
+                document.getElementById('sentEmails').textContent = data.sent_emails || 0;
+                document.getElementById('receivedEmails').textContent = data.received_emails || 0;
+                document.getElementById('totalThreads').textContent = data.total_threads || 0;
+
+                // Display top email types
+                const typesContainer = document.getElementById('emailTypesContainer');
+                if (data.top_email_types && data.top_email_types.length > 0) {
+                    const typesHtml = data.top_email_types.map(item => `
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-secondary badge-email-type">${item.type || 'Unknown'}</span>
+                            <span class="badge bg-primary">${item.count}</span>
+                        </div>
+                    `).join('');
+                    typesContainer.innerHTML = typesHtml;
+                } else {
+                    typesContainer.innerHTML = '<p class="text-muted">No email types recorded yet.</p>';
+                }
+            } else {
+                console.error('Error loading stats:', data);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+</script>
+{% endblock %}

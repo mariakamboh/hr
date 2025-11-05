@@ -41,13 +41,20 @@ class Orchestrator:
             print("✓ RAG Agent registered")
         except Exception as e:
             print(f"⚠ Warning: Could not initialize RAG Agent: {e}")
-        
+
         try:
             from orchestrator.hiring_agent import HiringAgentWrapper
             self.register_agent('hiring_agent', HiringAgentWrapper(), role='hr')
             print("✓ Hiring Agent registered")
         except Exception as e:
             print(f"⚠ Warning: Could not initialize Hiring Agent: {e}")
+
+        try:
+            from orchestrator.email_agent import EmailAgentWrapper
+            self.register_agent('email_agent', EmailAgentWrapper())
+            print("✓ Email Agent registered")
+        except Exception as e:
+            print(f"⚠ Warning: Could not initialize Email Agent: {e}")
     
     def register_agent(self, name: str, agent_instance: Any, role: Optional[str] = None):
         """

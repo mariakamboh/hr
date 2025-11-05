@@ -51,9 +51,102 @@ body {
     .container {
         padding: 0 15px;
     }
-    
+
     .card-body {
         padding: 1.5rem !important;
     }
+}
+
+/* Email-specific styles */
+.email-thread-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.email-thread-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,.15) !important;
+}
+
+.email-message {
+    border-left: 3px solid #007bff;
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+
+.email-message.sent {
+    border-left-color: #28a745;
+}
+
+.email-message.received {
+    border-left-color: #17a2b8;
+}
+
+.email-body {
+    background-color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.stat-card {
+    text-align: center;
+    padding: 20px;
+}
+
+.stat-card h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.stat-card p {
+    color: #6c757d;
+    margin: 0;
+}
+
+.sidebar {
+    background-color: #fff;
+    min-height: calc(100vh - 56px);
+    box-shadow: 2px 0 4px rgba(0,0,0,.1);
+    padding: 20px;
+}
+
+.sidebar .nav-link {
+    color: #495057;
+    padding: 12px 15px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    transition: all 0.2s ease;
+}
+
+.sidebar .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #007bff;
+}
+
+.sidebar .nav-link.active {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px;
+    width: 20px;
+}
+
+.timestamp {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.participants {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.badge-email-type {
+    font-size: 0.75rem;
+    padding: 4px 8px;
 }
 

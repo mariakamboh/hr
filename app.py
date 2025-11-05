@@ -21,10 +21,12 @@ def create_app():
     from routes.auth_routes import auth_bp
     from routes.employee_routes import employee_bp
     from routes.hr_routes import hr_bp
-    
+    from routes.email_routes import email_bp
+
     app.register_blueprint(auth_bp)
     app.register_blueprint(employee_bp)
     app.register_blueprint(hr_bp)
+    app.register_blueprint(email_bp)
     
     # Root route - redirect to login
     @app.route('/')

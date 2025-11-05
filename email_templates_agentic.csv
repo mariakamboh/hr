@@ -1,0 +1,25 @@
+EmailType,Instruction
+offer letter,"Write a professional offer letter including employee name, position, department, and joining date."
+appointment letter,"Write a professional appointment confirmation email including employee name, position, department, and joining date."
+joining reminder,Write a polite joining reminder email including employee name and joining date.
+onboarding schedule,"Write a welcoming onboarding schedule email including employee name, orientation date, reporting time, and HR contact."
+probation completion,"Write a congratulatory email for successfully completing probation including employee name, position, and department."
+promotion,"Write a congratulatory promotion email including employee name, new position, and department."
+salary increment,Write a salary revision notification email including employee name and effective date.
+leave approval,Write a formal leave approval email including employee name and leave dates.
+leave rejection,Write a polite leave rejection email including employee name and leave dates.
+attendance warning,Write a formal attendance warning email including employee name.
+performance warning,Write a performance improvement request email including employee name and department.
+appreciation,Write an appreciation email for exceptional performance including employee name and project name.
+project assignment,"Write a project assignment email including employee name, project name, and department."
+training invitation,"Write a training session invitation email including employee name, training topic, date, and venue."
+meeting invite,"Write a meeting invitation email including employee name, topic, date, and time."
+task reminder,"Write a friendly task reminder email including employee name, task name, and deadline."
+birthday,Write a friendly birthday greeting email including employee name.
+work anniversary,"Write a congratulatory work anniversary email including employee name, years completed, and company name."
+farewell,Write a farewell email including employee name and company name.
+resignation acceptance,"Write a resignation acceptance email including employee name, resignation date, and last working day."
+termination,"Write an employment termination email including employee name, company name, termination date, and reason."
+holiday announcement,Write a holiday announcement email including holiday name and date.
+policy update,Write a policy update email including policy topic.
+general announcement,Write a general company announcement email including announcement details.

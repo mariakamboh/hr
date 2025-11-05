@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Compose Email - HR Assistant{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="mb-2">Compose New Email</h1>
+                <p class="text-muted">Use AI-powered email generation for HR communications</p>
+            </div>
+            <div>
+                <a href="{{ url_for('email.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Email Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">AI-Powered Email Composer</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle"></i>
+                    <strong>How it works:</strong> Describe what email you want to send in natural language.
+                    The AI will understand the context and generate appropriate emails automatically.
+                </div>
+
+                <form id="composeForm">
+                    <div class="mb-4">
+                        <label for="hrQuery" class="form-label">
+                            <strong>HR Email Request</strong>
+                        </label>
+                        <textarea class="form-control" id="hrQuery" rows="4"
+                                  placeholder="Example: Send offer letter to John Doe for Software Engineer position in Technical department, joining date March 1st 2024"
+                                  required></textarea>
+                        <div class="form-text">
+                            Describe the email type, recipient(s), and any relevant details
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Supported Email Types:</strong></label>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <select class="form-select mb-2" id="emailTypeHelper" onchange="insertTemplate()">
+                                    <option value="">-- Quick Insert Template --</option>
+                                    <option value="offer letter">Offer Letter</option>
+                                    <option value="appointment letter">Appointment Letter</option>
+                                    <option value="joining reminder">Joining Reminder</option>
+                                    <option value="onboarding schedule">Onboarding Schedule</option>
+                                    <option value="probation completion">Probation Completion</option>
+                                    <option value="promotion">Promotion</option>
+                                    <option value="salary increment">Salary Increment</option>
+                                    <option value="leave approval">Leave Approval</option>
+                                    <option value="leave rejection">Leave Rejection</option>
+                                    <option value="attendance warning">Attendance Warning</option>
+                                    <option value="performance warning">Performance Warning</option>
+                                    <option value="appreciation">Appreciation</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <select class="form-select mb-2" id="emailTypeHelper2" onchange="insertTemplate2()">
+                                    <option value="">-- More Templates --</option>
+                                    <option value="project assignment">Project Assignment</option>
+                                    <option value="training invitation">Training Invitation</option>
+                                    <option value="meeting invite">Meeting Invite</option>
+                                    <option value="task reminder">Task Reminder</option>
+                                    <option value="birthday">Birthday Greeting</option>
+                                    <option value="work anniversary">Work Anniversary</option>
+                                    <option value="farewell">Farewell</option>
+                                    <option value="resignation acceptance">Resignation Acceptance</option>
+                                    <option value="termination">Termination</option>
+                                    <option value="holiday announcement">Holiday Announcement</option>
+                                    <option value="policy update">Policy Update</option>
+                                    <option value="general announcement">General Announcement</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="sendBtn">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" id="sendSpinner"></span>
+                            <i class="bi bi-send"></i> Generate and Send Email
+                        </button>
+                    </div>
+                </form>
+
+                <div id="resultContainer" class="mt-4" style="display: none;">
+                    <hr>
+                    <h6>Result:</h6>
+                    <div id="resultContent"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Examples Card -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0">Example Queries</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li class="mb-2">
+                        <code>Send offer letter to Sarah Khan for Senior Developer position, joining on March 15, 2024</code>
+                    </li>
+                    <li class="mb-2">
+                        <code>Send birthday wishes to all employees with birthday today</code>
+                    </li>
+                    <li class="mb-2">
+                        <code>Send promotion email to Ali Zaidi, new position: Team Lead</code>
+                    </li>
+                    <li class="mb-2">
+                        <code>Send meeting invite to Technical department for project review on Friday 2 PM</code>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<script>
+    function insertTemplate() {
+        const select = document.getElementById('emailTypeHelper');
+        const textarea = document.getElementById('hrQuery');
+        if (select.value) {
+            textarea.value = `Send ${select.value} to [employee name] `;
+            select.value = '';
+            textarea.focus();
+        }
+    }
+
+    function insertTemplate2() {
+        const select = document.getElementById('emailTypeHelper2');
+        const textarea = document.getElementById('hrQuery');
+        if (select.value) {
+            textarea.value = `Send ${select.value} to [employee name] `;
+            select.value = '';
+            textarea.focus();
+        }
+    }
+
+    document.getElementById('composeForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const query = document.getElementById('hrQuery').value.trim();
+        if (!query) return;
+
+        const sendBtn = document.getElementById('sendBtn');
+        const sendSpinner = document.getElementById('sendSpinner');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultContent = document.getElementById('resultContent');
+
+        sendBtn.disabled = true;
+        sendSpinner.classList.remove('d-none');
+        resultContainer.style.display = 'none';
+
+        resultContent.innerHTML = '<div class="alert alert-info">Processing your request... This may take a moment.</div>';
+        resultContainer.style.display = 'block';
+
+        // Note: This is a placeholder - actual email sending would require backend integration
+        // with the email_agent_final2.py controller logic
+
+        setTimeout(() => {
+            resultContent.innerHTML = `
+                <div class="alert alert-warning">
+                    <h6>Email Agent Integration Required</h6>
+                    <p>To enable full email sending functionality, the Email Agent controller from
+                    <code>email_agent_final2.py</code> needs to be integrated as a backend API endpoint.</p>
+                    <p class="mb-0"><strong>Your query:</strong> "${query}"</p>
+                </div>
+                <div class="alert alert-info">
+                    <strong>What would happen:</strong>
+                    <ul class="mb-0">
+                        <li>AI extracts email type and recipients</li>
+                        <li>Searches employee database</li>
+                        <li>Generates personalized email content</li>
+                        <li>Sends via SendGrid and logs to database</li>
+                    </ul>
+                </div>
+            `;
+            sendBtn.disabled = false;
+            sendSpinner.classList.add('d-none');
+        }, 1500);
+    });
+</script>
+{% endblock %}

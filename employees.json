@@ -1,0 +1,64 @@
+{
+  "indigo_employees": [
+    {
+      "name": "Omar Farooq",
+      "email": "omar_farooq@indigo.com",
+      "designation": "Managing Director & Co-Founder",
+      "department": "Executive"
+    },
+    {
+      "name": "Nadia Rehman",
+      "email": "nadia_rehman@indigo.com",
+      "designation": "Director of Strategy & Co-Founder",
+      "department": "Executive"
+    },
+    {
+      "name": "Fatima Tasneem",
+      "email": "fatimat2440@gmail.com",
+      "designation": "HR Director",
+      "department": "Human Resources"
+    },
+    {
+      "name": "Sarah Khan",
+      "email": "sarah_khan@indigo.com",
+      "designation": "Senior Actuarial Manager",
+      "department": "Actuarial"
+    },
+    {
+      "name": "Fatima",
+      "email": "fatima4501768@cloud.neduet.edu.pk",
+      "designation": "Junior AI Engineer",
+      "department": "Technical"
+    },
+    {
+      "name": "Haleema Khan",
+      "email": "h3172223@gmail.com",
+      "designation": "Data Annotator Intern",
+      "department": "Technical"
+    },
+    {
+      "name": "Bilal Ahmed",
+      "email": "bilal_ahmed@indigo.com",
+      "designation": "Risk & Valuation Manager",
+      "department": "Actuarial"
+    },
+    {
+      "name": "Hira Malik",
+      "email": "hira_malik@indigo.com",
+      "designation": "Financial Modelling Manager",
+      "department": "Actuarial"
+    },
+    {
+      "name": "Ali Zaidi",
+      "email": "ali_zaidi@indigo.com",
+      "designation": "Senior Actuarial Analyst",
+      "department": "Actuarial"
+    },
+    {
+      "name": "Maria Siddiqui",
+      "email": "maria_siddiqui@indigo.com",
+      "designation": "Actuarial Analyst",
+      "department": "Actuarial"
+    }
+  ]
+}
