@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}HR Dashboard - Hiring Agent System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">HR Dashboard</h1>
+        <p class="lead text-muted">Manage candidate hiring with AI-powered evaluation and CV management.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <!-- CV Upload Section -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">Upload CV</h5>
+            </div>
+            <div class="card-body">
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="cvFile" class="form-label">Select CV File (PDF, DOCX, TXT)</label>
+                        <input type="file" class="form-control" id="cvFile" name="file" accept=".pdf,.docx,.txt" required>
+                    </div>
+                    <button type="submit" class="btn btn-success" id="uploadBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" id="uploadSpinner"></span>
+                        Upload CV
+                    </button>
+                </form>
+                <div id="uploadMessage" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CV Statistics -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">CV Database Stats</h5>
+            </div>
+            <div class="card-body">
+                <div id="cvStatsContainer">
+                    <p class="text-muted">Loading statistics...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Job Hiring Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Process Job Hiring</h5>
+            </div>
+            <div class="card-body">
+                <form id="hiringForm">
+                    <div class="mb-3">
+                        <label for="jobDescription" class="form-label">Job Description</label>
+                        <textarea class="form-control" id="jobDescription" rows="6" 
+                                  placeholder="Enter job requirements, responsibilities, skills needed, etc." required></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="initialRetrieval" class="form-label">Initial Retrieval (CVs to retrieve)</label>
+                            <input type="number" class="form-control" id="initialRetrieval" value="30" min="1" max="100">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="finalCandidates" class="form-label">Final Candidates (to evaluate)</label>
+                            <input type="number" class="form-control" id="finalCandidates" value="5" min="1" max="20">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="processBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" id="processSpinner"></span>
+                        Process Hiring
+                    </button>
+                </form>
+                
+                <div id="candidatesContainer" class="mt-4" style="display: none;">
+                    <hr>
+                    <h6>Candidates:</h6>
+                    <div id="candidatesContent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Load CV statistics on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadCVStats();
+    });
+    
+    // Handle CV upload
+    document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const fileInput = document.getElementById('cvFile');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadSpinner = document.getElementById('uploadSpinner');
+        const uploadMessage = document.getElementById('uploadMessage');
+        
+        if (!fileInput.files[0]) {
+            uploadMessage.innerHTML = '<div class="alert alert-warning">Please select a file</div>';
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+        
+        uploadBtn.disabled = true;
+        uploadSpinner.classList.remove('d-none');
+        uploadMessage.innerHTML = '';
+        
+        try {
+            const response = await fetch('/hr/upload_cv', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                uploadMessage.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                fileInput.value = '';
+                loadCVStats(); // Refresh stats
+            } else {
+                uploadMessage.innerHTML = `<div class="alert alert-danger">Error: ${data.error || 'Upload failed'}</div>`;
+            }
+        } catch (error) {
+            uploadMessage.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+        } finally {
+            uploadBtn.disabled = false;
+            uploadSpinner.classList.add('d-none');
+        }
+    });
+    
+    // Handle job hiring
+    document.getElementById('hiringForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const jobDescription = document.getElementById('jobDescription').value.trim();
+        if (!jobDescription) return;
+        
+        const initialRetrieval = parseInt(document.getElementById('initialRetrieval').value) || 30;
+        const finalCandidates = parseInt(document.getElementById('finalCandidates').value) || 5;
+        
+        const processBtn = document.getElementById('processBtn');
+        const processSpinner = document.getElementById('processSpinner');
+        const candidatesContainer = document.getElementById('candidatesContainer');
+        const candidatesContent = document.getElementById('candidatesContent');
+        
+        processBtn.disabled = true;
+        processSpinner.classList.remove('d-none');
+        candidatesContainer.style.display = 'none';
+        candidatesContent.innerHTML = '<div class="alert alert-info">Processing candidates... This may take a few minutes.</div>';
+        candidatesContainer.style.display = 'block';
+        
+        try {
+            const response = await fetch('/hr/process_hiring', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    job_description: jobDescription,
+                    initial_retrieval: initialRetrieval,
+                    final_candidates: finalCandidates
+                })
+            });
+            
+            const data = await response.json();
+            
+            console.log('Response data:', data); // Debug log
+            
+            if (response.ok && data.candidates) {
+                console.log('Candidates received:', data.candidates.length);
+                displayCandidates(data.candidates);
+                candidatesContainer.style.display = 'block';
+            } else {
+                candidatesContent.innerHTML = `<div class="alert alert-danger">Error: ${data.error || 'Processing failed'}</div>`;
+                candidatesContainer.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            candidatesContent.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            candidatesContainer.style.display = 'block';
+        } finally {
+            processBtn.disabled = false;
+            processSpinner.classList.add('d-none');
+        }
+    });
+    
+    // Display candidates with improved formatting
+    function displayCandidates(candidates) {
+        console.log('Displaying candidates:', candidates);
+        
+        if (!candidates || candidates.length === 0) {
+            document.getElementById('candidatesContent').innerHTML = 
+                '<div class="alert alert-info">No candidates found</div>';
+            return;
+        }
+        
+        const candidatesHtml = candidates.map((candidate, index) => {
+            console.log(`Candidate ${index + 1}:`, candidate);
+            
+            // Extract data with proper fallbacks
+            const score = parseFloat(candidate.overall_score || candidate.score || 0);
+            const decision = (candidate.decision || 'PENDING').toUpperCase();
+            const name = candidate.name || candidate.filename || 'Unknown Candidate';
+            const reasoning = candidate.reasoning || 'No reasoning provided';
+            const skills = Array.isArray(candidate.key_skills) ? candidate.key_skills : [];
+            const experience = Array.isArray(candidate.relevant_experience) ? candidate.relevant_experience : [];
+            const concerns = Array.isArray(candidate.concerns) ? candidate.concerns : [];
+            const credibility = candidate.credibility_status || 'NOT_VERIFIED';
+            
+            // Decision badge color
+            let decisionBadge = 'bg-secondary';
+            if (decision === 'STRONG_HIRE') decisionBadge = 'bg-success';
+            else if (decision === 'HIRE') decisionBadge = 'bg-success';
+            else if (decision === 'MAYBE') decisionBadge = 'bg-warning';
+            else if (decision === 'REJECT') decisionBadge = 'bg-danger';
+            
+            // Credibility badge
+            let credibilityBadge = 'bg-secondary';
+            if (credibility === 'VERIFIED') credibilityBadge = 'bg-success';
+            else if (credibility === 'QUESTIONABLE') credibilityBadge = 'bg-danger';
+            
+            return `
+                <div class="card mb-3">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">#${index + 1} - ${escapeHtml(name)}</h6>
+                        <div>
+                            <span class="badge ${decisionBadge} me-2">${decision}</span>
+                            <span class="badge ${credibilityBadge}">${credibility}</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <p><strong>Overall Score:</strong> <span class="badge bg-primary">${score.toFixed(1)}/100</span></p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>File:</strong> <small class="text-muted">${escapeHtml(candidate.filename || 'N/A')}</small></p>
+                            </div>
+                        </div>
+                        
+                        ${reasoning ? `
+                        <div class="mb-3">
+                            <strong>Reasoning:</strong>
+                            <p class="text-muted">${escapeHtml(reasoning.substring(0, 300))}${reasoning.length > 300 ? '...' : ''}</p>
+                        </div>
+                        ` : ''}
+                        
+                        ${skills.length > 0 ? `
+                        <div class="mb-3">
+                            <strong>Key Skills:</strong>
+                            <div class="mt-1">
+                                ${skills.slice(0, 8).map(skill => 
+                                    `<span class="badge bg-info text-dark me-1 mb-1">${escapeHtml(skill)}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        ${experience.length > 0 ? `
+                        <div class="mb-3">
+                            <strong>Relevant Experience:</strong>
+                            <ul class="small mt-1">
+                                ${experience.slice(0, 3).map(exp => 
+                                    `<li>${escapeHtml(exp)}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                        
+                        ${concerns.length > 0 ? `
+                        <div class="mb-2">
+                            <strong class="text-danger">Concerns:</strong>
+                            <ul class="small text-danger mt-1">
+                                ${concerns.map(concern => 
+                                    `<li>${escapeHtml(concern)}</li>`
+                                ).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                        
+                        ${candidate.scoring ? `
+                        <div class="mt-3">
+                            <button class="btn btn-sm btn-outline-secondary" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#scoring${index}">
+                                View Detailed Scores
+                            </button>
+                            <div class="collapse mt-2" id="scoring${index}">
+                                <div class="card card-body small">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p><strong>Alignment:</strong> ${(candidate.scoring.alignment_score || 0).toFixed(1)}/100</p>
+                                            <p><strong>Experience:</strong> ${(candidate.scoring.experience_score || 0).toFixed(1)}/100</p>
+                                            <p><strong>Skills:</strong> ${(candidate.scoring.skills_score || 0).toFixed(1)}/100</p>
+                                            <p><strong>Achievements:</strong> ${(candidate.scoring.achievements_score || 0).toFixed(1)}/100</p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p><strong>ATS Keywords:</strong> ${(candidate.scoring.ats_keywords_score || 0).toFixed(1)}/100</p>
+                                            <p><strong>Education:</strong> ${(candidate.scoring.education_score || 0).toFixed(1)}/100</p>
+                                            <p><strong>Career Progress:</strong> ${(candidate.scoring.career_progression_score || 0).toFixed(1)}/100</p>
+                                            <p><strong>Cultural Fit:</strong> ${(candidate.scoring.cultural_fit_score || 0).toFixed(1)}/100</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        document.getElementById('candidatesContent').innerHTML = candidatesHtml;
+    }
+    
+    // Helper function to escape HTML
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Load CV statistics
+    async function loadCVStats() {
+        try {
+            const response = await fetch('/hr/cv_stats');
+            const data = await response.json();
+            
+            if (response.ok && !data.error) {
+                const statsHtml = `
+                    <p><strong>Total CVs:</strong> ${data.total_cvs || 0}</p>
+                    ${data.cv_list && data.cv_list.length > 0 ? 
+                        `<p><strong>Recent CVs:</strong><br><small class="text-muted">${data.cv_list.slice(0, 5).join(', ')}${data.cv_list.length > 5 ? '...' : ''}</small></p>` : 
+                        '<p class="text-muted">No CVs in database</p>'
+                    }
+                `;
+                document.getElementById('cvStatsContainer').innerHTML = statsHtml;
+            } else {
+                document.getElementById('cvStatsContainer').innerHTML = 
+                    '<p class="text-danger">Error loading statistics</p>';
+            }
+        } catch (error) {
+            document.getElementById('cvStatsContainer').innerHTML = 
+                '<p class="text-danger">Error loading statistics</p>';
+        }
+    }
+</script>
+{% endblock %}

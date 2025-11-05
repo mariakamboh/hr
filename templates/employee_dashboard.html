@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Dashboard - Flask RAG System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">Employee Dashboard</h1>
+        <p class="lead text-muted">Ask questions about company documents using our AI-powered RAG system.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Ask a Question</h5>
+            </div>
+            <div class="card-body">
+                <form id="queryForm">
+                    <div class="mb-3">
+                        <label for="question" class="form-label">Your Question</label>
+                        <textarea class="form-control" id="question" rows="3" 
+                                  placeholder="e.g., What is the company leave policy?" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" id="loadingSpinner"></span>
+                        Ask Question
+                    </button>
+                </form>
+                
+                <div id="answerContainer" class="mt-4" style="display: none;">
+                    <hr>
+                    <h6 class="text-muted">Answer:</h6>
+                    <div id="answerContent" class="alert alert-info"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">System Info</h5>
+            </div>
+            <div class="card-body">
+                <div id="statsContainer">
+                    <p class="text-muted">Loading statistics...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0">Query History</h5>
+            </div>
+            <div class="card-body">
+                <div id="historyContainer">
+                    <p class="text-muted">Your query history will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let queryHistory = [];
+    
+    // Load statistics on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        loadStats();
+    });
+    
+    // Handle query form submission
+    document.getElementById('queryForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const question = document.getElementById('question').value.trim();
+        if (!question) return;
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const answerContainer = document.getElementById('answerContainer');
+        const answerContent = document.getElementById('answerContent');
+        
+        // Show loading state
+        submitBtn.disabled = true;
+        loadingSpinner.classList.remove('d-none');
+        answerContainer.style.display = 'none';
+        
+        try {
+            const response = await fetch('/employee/query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ question: question })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                // Display answer
+                answerContent.textContent = data.answer;
+                answerContainer.style.display = 'block';
+                
+                // Add to history
+                queryHistory.unshift({
+                    question: data.question,
+                    answer: data.answer,
+                    timestamp: new Date().toLocaleString()
+                });
+                updateHistory();
+            } else {
+                answerContent.textContent = 'Error: ' + (data.error || 'Failed to get answer');
+                answerContent.className = 'alert alert-danger';
+                answerContainer.style.display = 'block';
+            }
+        } catch (error) {
+            answerContent.textContent = 'Error: ' + error.message;
+            answerContent.className = 'alert alert-danger';
+            answerContainer.style.display = 'block';
+        } finally {
+            submitBtn.disabled = false;
+            loadingSpinner.classList.add('d-none');
+            answerContent.className = 'alert alert-info';
+        }
+    });
+    
+    // Load statistics
+    async function loadStats() {
+        try {
+            const response = await fetch('/employee/stats');
+            const data = await response.json();
+            
+            if (response.ok && !data.error) {
+                const statsHtml = `
+                    <p><strong>Total Documents:</strong> ${data.total_documents || 0}</p>
+                    ${data.document_list && data.document_list.length > 0 ? 
+                        `<p><strong>Documents:</strong><br><small class="text-muted">${data.document_list.slice(0, 5).join(', ')}${data.document_list.length > 5 ? '...' : ''}</small></p>` : 
+                        '<p class="text-muted">No documents available</p>'
+                    }
+                `;
+                document.getElementById('statsContainer').innerHTML = statsHtml;
+            } else {
+                document.getElementById('statsContainer').innerHTML = 
+                    '<p class="text-danger">Error loading statistics</p>';
+            }
+        } catch (error) {
+            document.getElementById('statsContainer').innerHTML = 
+                '<p class="text-danger">Error loading statistics</p>';
+        }
+    }
+    
+    // Update history display
+    function updateHistory() {
+        const historyContainer = document.getElementById('historyContainer');
+        
+        if (queryHistory.length === 0) {
+            historyContainer.innerHTML = '<p class="text-muted">Your query history will appear here.</p>';
+            return;
+        }
+        
+        const historyHtml = queryHistory.slice(0, 10).map(item => `
+            <div class="mb-3 p-3 border rounded">
+                <strong>Q:</strong> ${item.question}<br>
+                <strong>A:</strong> ${item.answer.substring(0, 200)}${item.answer.length > 200 ? '...' : ''}<br>
+                <small class="text-muted">${item.timestamp}</small>
+            </div>
+        `).join('');
+        
+        historyContainer.innerHTML = historyHtml;
+    }
+</script>
+{% endblock %}
+
