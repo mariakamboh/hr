@@ -148,6 +148,34 @@ def cv_stats():
         return jsonify({'error': str(e)}), 500
 
 
+@hr_bp.route('/bulk_import_cvs', methods=['POST'])
+def bulk_import_cvs():
+    """Bulk import CVs from the uploads/cvs folder"""
+    if not require_hr_login():
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        folder = request.json.get('folder') if request.is_json else None
+        if not folder:
+            folder = os.path.join(os.path.dirname(__file__), '..', 'uploads', 'cvs')
+            folder = os.path.abspath(folder)
+
+        orchestrator = get_orchestrator()
+        route_result = orchestrator.route_request(user_role='hr')
+        if not route_result.get('agent'):
+            return jsonify({'error': 'Hiring agent not available'}), 500
+
+        hiring_agent = route_result['agent']
+        result = hiring_agent.bulk_import_cvs(folder)
+
+        if result.get('success'):
+            return jsonify({'status': 'success', 'imported': result.get('imported', 0)})
+        else:
+            return jsonify({'error': result.get('error', 'Import failed')}), 500
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @hr_bp.route('/search_cvs', methods=['POST'])
 def search_cvs():
     """Search CVs matching job description"""

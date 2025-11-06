@@ -29,20 +29,28 @@ class HiringAgentWrapper:
     located in hiring-agent/hiring_agent.py
     """
     
+    # Class-level shared agent to prevent repeated initialization
+    _shared_agent_instance = None
+
     def __init__(self):
-        """Initialize the Hiring Agent"""
+        """Initialize the Hiring Agent (singleton for the underlying agent)"""
         if HiringAgent is None:
             raise ImportError("Hiring Agent not available")
         if Config is None:
             raise ImportError("Config not available")
-        
-        # Get database path and API key
-        cv_db_path = os.path.join(os.path.dirname(__file__), '..', Config.RAG_DB_PATH)
-        cv_db_path = os.path.abspath(cv_db_path)
-        api_key = Config.GOOGLE_API_KEY
-        
-        self.agent = HiringAgent(api_key=api_key, cv_db_path=cv_db_path)
-        print("Hiring Agent Wrapper initialized")
+
+        if HiringAgentWrapper._shared_agent_instance is None:
+            # Get database path and API key
+            cv_db_path = os.path.join(os.path.dirname(__file__), '..', Config.RAG_DB_PATH)
+            cv_db_path = os.path.abspath(cv_db_path)
+            api_key = Config.GOOGLE_API_KEY
+
+            HiringAgentWrapper._shared_agent_instance = HiringAgent(api_key=api_key, cv_db_path=cv_db_path)
+            print("Hiring Agent Wrapper initialized (created shared agent)")
+        else:
+            print("Hiring Agent Wrapper initialized (reused shared agent)")
+
+        self.agent = HiringAgentWrapper._shared_agent_instance
     
     def process_job_hiring(self, job_description: str, 
                           initial_retrieval: int = 30, 
@@ -233,3 +241,11 @@ class HiringAgentWrapper:
             return self.agent.search_cvs(job_description, limit=limit)
         except Exception as e:
             return [{'error': str(e)}]
+
+    def bulk_import_cvs(self, folder_path: str) -> dict:
+        """Bulk import CVs from a folder path using the underlying agent"""
+        try:
+            count = self.agent.bulk_import_cvs(folder_path)
+            return {'success': True, 'imported': count}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}

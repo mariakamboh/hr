@@ -137,3 +137,40 @@ def compose():
         return redirect(url_for('auth.login'))
 
     return render_template('email_compose.html', username=session.get('username'))
+
+
+@email_bp.route('/send', methods=['POST'])
+def send_email():
+    """Process and send email from compose form"""
+    if not require_hr_login():
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'success': False, 'message': 'No data provided'}), 400
+        
+        query = data.get('query', '').strip()
+        if not query:
+            return jsonify({'success': False, 'message': 'Query is required'}), 400
+        
+        # Get email agent from orchestrator
+        orchestrator = get_orchestrator()
+        route_result = orchestrator.route_request(user_role='hr', agent_name='email_agent')
+        
+        if not route_result.get('agent'):
+            return jsonify({'success': False, 'message': 'Email agent not available'}), 500
+        
+        email_agent = route_result['agent']
+        
+        # Process the email request
+        result = email_agent.process_email_request(query)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"Error in send_email route: {e}")
+        return jsonify({
+            'success': False,
+            'message': f'Error processing request: {str(e)}'
+        }), 500

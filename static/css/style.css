@@ -1,7 +1,7 @@
 /* Custom styles for Flask RAG & Hiring System */
 
 body {
-    background-color: #f8f9fa;
+    background-color: #f6f8fb;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
@@ -12,10 +12,11 @@ body {
 
 .card-header {
     border-radius: 10px 10px 0 0 !important;
+    background-image: linear-gradient(90deg, rgba(0,0,0,0.03), rgba(255,255,255,0));
 }
 
 .shadow {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+    box-shadow: 0 6px 18px rgba(28, 39, 60, 0.08) !important;
 }
 
 .navbar {
@@ -38,6 +39,7 @@ body {
 
 .alert {
     border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.05);
 }
 
 /* Loading spinner */
@@ -86,12 +88,14 @@ body {
     background-color: #fff;
     padding: 15px;
     border-radius: 8px;
-    border: 1px solid #e9ecef;
+    border: 1px solid #e7eaf0;
 }
 
 .stat-card {
     text-align: center;
     padding: 20px;
+    background: #ffffff;
+    border: 1px solid #eef1f6;
 }
 
 .stat-card h3 {
@@ -121,12 +125,12 @@ body {
 }
 
 .sidebar .nav-link:hover {
-    background-color: #f8f9fa;
-    color: #007bff;
+    background-color: #eef5ff;
+    color: #0d6efd;
 }
 
 .sidebar .nav-link.active {
-    background-color: #007bff;
+    background-color: #0d6efd;
     color: #fff;
 }
 

@@ -2,11 +2,15 @@
 Main Flask application entry point
 """
 from flask import Flask
+from dotenv import load_dotenv
 from config import Config
 from database import db
 
 def create_app():
     """Create and configure Flask app"""
+    # Load environment variables from .env (if present)
+    load_dotenv()
+
     app = Flask(__name__)
     app.config.from_object(Config)
     
